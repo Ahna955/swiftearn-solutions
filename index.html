@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwiftEarn Solutions</title>
+    <style>
+        :root {
+            --primary: #d97706;
+            --primary-hover: #b45309;
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid #334155;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 12px;
+        }
+
+        .logo-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-img {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            object-fit: cover;
+        }
+
+        .lang-select {
+            background: #334155;
+            color: white;
+            border: 1px solid var(--primary);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .balance-card {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            padding: 18px;
+            border-radius: 14px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
+        }
+
+        .balance-card h3 { font-size: 13px; opacity: 0.9; }
+        .balance-card h2 { font-size: 30px; font-weight: bold; margin-top: 4px; }
+
+        .auth-box, .task-box, .section-card {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .input-group {
+            margin-bottom: 12px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #1e293b;
+            color: white;
+            font-size: 14px;
+        }
+
+        .captcha-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #1e293b;
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .captcha-code {
+            background: #334155;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: var(--primary);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: var(--primary);
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn:hover { background: var(--primary-hover); }
+
+        .task-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .task-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .task-card:hover { border-color: var(--primary); }
+        .task-card h4 { font-size: 13px; margin-bottom: 4px; }
+        .task-card p { font-size: 11px; color: var(--success); }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            border: 1px solid #334155;
+            padding: 20px;
+            border-radius: 14px;
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+        }
+
+        .admin-toggle {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header>
+            <div class="logo-box">
+                <img src="logo.jpg" alt="Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/42/d97706/ffffff?text=S'">
+                <h2 style="font-size: 16px;">SwiftEarn</h2>
+            </div>
+            <select class="lang-select" id="langSelect" onchange="changeLanguage()">
+                <option value="en">English</option>
+                <option value="ta">தமிழ்</option>
+                <option value="si">සිංහල</option>
+            </select>
+        </header>
+
+        <!-- Auth Section -->
+        <div id="authSection" class="auth-box">
+            <h3 id="authTitle" style="margin-bottom: 12px;">Register / Login</h3>
+            <div class="input-group">
+                <label id="lblEmail">Email</label>
+                <input type="email" id="userEmail" placeholder="example@mail.com">
+            </div>
+            <div class="input-group">
+                <label id="lblPhone">Phone Number</label>
+                <input type="text" id="userPhone" placeholder="07XXXXXXXX">
+            </div>
+            <div class="input-group">
+                <label id="lblPass">Password</label>
+                <input type="password" id="userPass" placeholder="******">
+            </div>
+            <!-- Captcha Bot Protection -->
+            <div class="captcha-box">
+                <span class="captcha-code" id="captchaCode">8A2B</span>
+                <input type="text" id="captchaInput" placeholder="Enter Captcha" style="padding:6px; background:#0f172a; border:1px solid #334155; color:white; border-radius:6px; width:100%;">
+            </div>
+            <button class="btn" onclick="handleAuth()">Submit & Continue</button>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboardSection" style="display: none; flex-direction: column; gap: 16px;">
+            
+            <!-- Balance Card -->
+            <div class="balance-card">
+                <h3 id="lblTotalBalance">Total Balance</h3>
+                <h2 id="userBalance">LKR 0.00</h2>
+            </div>
+
+            <!-- Daily Claim Bonus Button -->
+            <button class="btn" style="background: #10b981;" id="btnClaimBonus" onclick="claimDailyBonus()">🎁 Claim Daily Bonus (+LKR 50)</button>
+
+            <!-- Earning Tasks Grid -->
+            <h4 style="color: var(--text-muted); font-size: 14px;" id="lblEarningTasks">Earning Tasks</h4>
+            <div class="task-grid">
+                <div class="task-card" onclick="openMathTask()">
+                    <h4>🧮 Math Quiz</h4>
+                    <p>+10 LKR</p>
+                </div>
+                <div class="task-card" onclick="openSpinTask()">
+                    <h4>🎡 Spin Wheel</h4>
+                    <p id="spinBadge">5 Spins Left</p>
+                </div>
+                <div class="task-card" onclick="openMatchTask()">
+                    <h4>🧩 Matching Task</h4>
+                    <p>+30 LKR</p>
+                </div>
+                <div class="task-card" onclick="openCaptchaTask()">
+                    <h4>🔤 Captcha Typing</h4>
+                    <p>+30 LKR</p>
+                </div>
+                <div class="task-card" onclick="openFixLetterTask()">
+                    <h4>✏️ Letter Fix</h4>
+                    <p>+40 LKR</p>
+                </div>
+                <div class="task-card" style="opacity:0.6; cursor:not-allowed;">
+                    <h4>📈 Investments</h4>
+                    <p style="color:var(--danger)">Coming Soon</p>
+                </div>
+            </div>
+
+            <!-- How It Works -->
+            <div class="section-card">
+                <h4 style="font-size:13px; margin-bottom:6px;" id="lblHowItWorks">How It Works</h4>
+                <p style="font-size:11px; color:var(--text-muted);" id="txtHowItWorks">Complete simple tasks daily, watch mandatory verified ads to unlock spins & withdraw your rewards safely.</p>
+            </div>
+
+            <!-- Contact Support -->
+            <a href="https://wa.me/" target="_blank" style="text-decoration:none;">
+                <button class="btn" style="background:#25d366;">💬 Contact Customer Support (WhatsApp)</button>
+            </a>
+
+            <!-- Withdrawal Section -->
+            <button class="btn" style="background:#0284c7;" onclick="initiateWithdrawal()">💳 Withdraw (Min. LKR 1000)</button>
+
+            <!-- Status Indicator -->
+            <div id="payoutStatusBox" style="text-align:center; font-size:12px; color:var(--success); font-weight:bold;"></div>
+
+            <span class="admin-toggle" onclick="toggleAdminPanel()">⚙️ Admin Panel Access</span>
+        </div>
+
+        <!-- Admin Panel -->
+        <div id="adminPanel" class="section-card" style="display:none; border-color:var(--primary);">
+            <h3 style="color:var(--primary); margin-bottom:10px;">⚙️ Admin Dashboard (Ahna)</h3>
+            <div id="adminRequestsList" style="font-size:12px;">No pending withdrawal requests.</div>
+        </div>
+
+    </div>
+
+    <!-- Modal -->
+    <div id="appModal" class="modal">
+        <div class="modal-content" id="modalBody"></div>
+    </div>
+
+    <script>
+        let balance = 0;
+        let freeSpins = 5;
+        let generatedCaptcha = "";
+        let dailyClaimed = false;
+        let currentLang = "en";
+        let pendingWithdrawal = null;
+
+        const translations = {
+            en: { title: "Register / Login", email: "Email", phone: "Phone Number", pass: "Password", balance: "Total Balance", claimBtn: "🎁 Claim Daily Bonus (+LKR 50)", tasks: "Earning Tasks", how: "How It Works", howTxt: "Complete simple tasks daily, watch mandatory verified ads to unlock spins & withdraw your rewards safely." },
+            ta: { title: "பதிவு / உள்நுழைவு", email: "மின்னஞ்சல்", phone: "தொலைபேசி எண்", pass: "கடவுச்சொல்", balance: "மொத்த இருப்பு", claimBtn: "🎁 தினசரி போனஸ் பெறுக (+LKR 50)", tasks: "சம்பாதிக்க பணிகளைச் செய்க", how: "இது எவ்வாறு செயல்படுகிறது", howTxt: "தினமும் எளிய பணிகளை முடித்து, விளம்பரங்களை பார்த்து உங்கள் பணத்தை பாதுகாப்பாக திரும்பப் பெறுங்கள்." },
+            si: { title: "ලියාපදිංචිය / පිවිසුම", email: "විද්‍යුත් තැපෑල", phone: "දුරකථන අංකය", pass: "මුරපදය", balance: "මුළු ශේෂය", claimBtn: "🎁 දෛනික බෝනස් ලබා ගන්න (+LKR 50)", tasks: "මුදල් උපයන කාර්යයන්", how: "මෙය ක්‍රියාත්මක වන ආකාරය", howTxt: "දිනපතා සරල කාර්යයන් සම්පූර්ණ කර ඔබගේ මුදල් ආරක්ෂිතව ලබා ගන්න." }
+        };
+
+        function generateCaptcha() {
+            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+            generatedCaptcha = "";
+            for (let i = 0; i < 4; i++) {
+                generatedCaptcha += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('captchaCode').innerText = generatedCaptcha;
+        }
+
+        function changeLanguage() {
+            currentLang = document.getElementById('langSelect').value;
+            const t = translations[currentLang];
+            document.getElementById('authTitle').innerText = t.title;
+            document.getElementById('lblEmail').innerText = t.email;
+            document.getElementById('lblPhone').innerText = t.phone;
+            document.getElementById('lblPass').innerText = t.pass;
+            document.getElementById('lblTotalBalance').innerText = t.balance;
+            document.getElementById('btnClaimBonus').innerText = t.claimBtn;
+            document.getElementById('lblEarningTasks').innerText = t.tasks;
+            document.getElementById('lblHowItWorks').innerText = t.how;
+            document.getElementById('txtHowItWorks').innerText = t.howTxt;
+        }
+
+        function handleAuth() {
+            const captchaIn = document.getElementById('captchaInput').value.trim();
+            if (captchaIn.toUpperCase() !== generatedCaptcha) {
+                alert("Incorrect Captcha! Please try again.");
+                generateCaptcha();
+                return;
+            }
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('dashboardSection').style.display = 'flex';
+        }
+
+        function updateBalance(amount) {
+            balance += amount;
+            document.getElementById('userBalance').innerText = `LKR ${balance}.00`;
+        }
+
+        function claimDailyBonus() {
+            if (dailyClaimed) {
+                alert("You have already claimed today's bonus! Come back tomorrow.");
+                return;
+            }
+            dailyClaimed = true;
+            updateBalance(50);
+            document.getElementById('btnClaimBonus').style.opacity = '0.5';
+            alert("Congratulations! LKR 50 Daily Bonus added to your balance.");
+        }
+
+        function closeModal() { document.getElementById('appModal').style.display = 'none'; }
+        function showModal(htmlContent) {
+            document.getElementById('modalBody').innerHTML = htmlContent;
+            document.getElementById('appModal').style.display = 'flex';
+        }
+
+        // Spin Logic: 1 Ad Watch = +1 Spin Unlock
+        function openSpinTask() {
+            if (freeSpins <= 0) {
+                showModal(`
+                    <h3>🎡 Spin Wheel Locked</h3>
+                    <p style="margin:12px 0; color:var(--text-muted);">No free spins left! Watch 1 ad to unlock 1 spin.</p>
+                    <button class="btn" onclick="watchAdForSpin()">Watch 1 Ad (+1 Spin)</button>
+                    <button class="btn" style="background:#475569; margin-top:8px;" onclick="closeModal()">Close</button>
+                `);
+                return;
+            }
+            showModal(`
+                <h3>🎡 Spin & Win</h3>
+                <p style="margin-bottom:10px;">Available Spins: <b>${freeSpins}</b></p>
+                <button class="btn" onclick="doSpin()">Spin Now</button>
+                <button class="btn" style="background:#475569; margin-top:8px;" onclick="closeModal()">Close</button>
+            `);
+        }
+
+        function doSpin() {
+            if (freeSpins > 0) {
+                freeSpins--;
+                const rewards = [5, 10, 100, 200, 150, 250, 500];
+                const won = rewards[Math.floor(Math.random() * rewards.length)];
+                updateBalance(won);
+                document.getElementById('spinBadge').innerText = `${freeSpins} Spins Left`;
+                alert(`Awesome! You won LKR ${won}`);
+                closeModal();
+            }
+        }
+
+        function watchAdForSpin() {
+            showModal(`
+                <h3>Sponsored Ad</h3>
+                <p style="margin:16px 0;">[ AdCash Video Container ]\nPlease wait 3 seconds...</p>
+                <div id="adTimer" style="color:var(--primary); font-weight:bold;">3s</div>
+            `);
+            let t = 3;
+            let timer = setInterval(() => {
+                t--;
+                if (t > 0) {
+                    document.getElementById('adTimer').innerText = `${t}s`;
+                } else {
+                    clearInterval(timer);
+                    freeSpins++;
+                    document.getElementById('spinBadge').innerText = `${freeSpins} Spins Left`;
+                    alert("Ad Watched Successfully! +1 Spin Unlocked.");
+                    openSpinTask();
+                }
+            }, 1000);
+        }
+
+        // Other Tasks
+        function openMathTask() {
+            const n1 = Math.floor(Math.random() * 20) + 5;
+            const n2 = Math.floor(Math.random() * 20) + 5;
+            const ans = n1 + n2;
+            showModal(`
+                <h3>🧮 Math Quiz</h3>
+                <p style="margin:12px 0;">Solve: <b>${n1} + ${n2} = ?</b></p>
+                <input type="number" id="mathAns" style="padding:8px; width:100%; border-radius:6px; margin-bottom:12px;">
+                <button class="btn" onclick="checkMath(${ans})">Submit Answer</button>
+                <button class="btn" style="background:#475569; margin-top:8px;" onclick="closeModal()">Close</button>
+            `);
+        }
+
+        function checkMath(correctAns) {
+            const userAns = parseInt(document.getElementById('mathAns').value);
+            if (userAns === correctAns) {
+                updateBalance(10);
+                alert("Correct! LKR 10 added.");
+                closeModal();
+            } else { alert("Wrong answer, try again!"); }
+        }
+
+        function openCaptchaTask() {
+            const code = Math.random().toString(36).substring(2, 7).toUpperCase();
+            showModal(`
+                <h3>🔤 Captcha Typing</h3>
+                <p style="margin:12px 0;">Type code: <b style="color:var(--primary);">${code}</b></p>
+                <input type="text" id="capAns" style="padding:8px; width:100%; border-radius:6px; margin-bottom:12px;">
+                <button class="btn" onclick="checkCaptchaTask('${code}')">Submit</button>
+                <button class="btn" style="background:#475569; margin-top:8px;" onclick="closeModal()">Close</button>
+            `);
+        }
+
+        function checkCaptchaTask(target) {
+            const val = document.getElementById('capAns').value.trim();
+            if (val.toUpperCase() === target) {
+                updateBalance(30);
+                alert("Correct! LKR 30 added.");
+                closeModal();
+            } else { alert("Incorrect code!"); }
+        }
+
+        function openFixLetterTask() {
+            showModal(`
+                <h3>✏️ Correct the Word</h3>
+                <p style="margin:12px 0;">Fix typo: <b style="color:var(--danger);">SWIFTEARN SOLUTONS</b></p>
+                <input type="text" id="fixAns" placeholder="Type correct name" style="padding:8px; width:100%; border-radius:6px; margin-bottom:12px;">
+                <button class="btn" onclick="checkFixLetter()">Submit</button>
+                <button class="btn" style="background:#475569; margin-top:8px;" onclick="closeModal()">Close</button>
+            `);
+        }
+
+        function checkFixLetter() {
+            const val = document.getElementById('fixAns').value.trim().toUpperCase();
+            if (val === "SWIFTEARN SOLUTIONS") {
+                updateBalance(40);
+                alert("Perfect! LKR 40 added.");
+                closeModal();
+            } else { alert("Incorrect correction!"); }
+        }
+
+        function openMatchTask() {
+            updateBalance(30);
+            alert("Matching Task completed! LKR 30 added.");
+        }
+
+        // Withdrawal & Mandatory Ad Gate
+        function initiateWithdrawal() {
+            if (balance < 1000) {
+                alert(`Minimum withdrawal limit is LKR 1000. Your balance: LKR ${balance}`);
+                return;
+            }
+            showModal(`
+                <h3>Mandatory Sponsor Ad</h3>
+                <p style="margin:12px 0;">You must watch this ad completely before opening withdrawal form.</p>
+                <div id="withdrawAdProgress" style="color:var(--primary); font-weight:bold; margin:12px 0;">Watching Ad... 3s</div>
+            `);
+            let t = 3;
+            let timer = setInterval(() => {
+                t--;
+                if (t > 0) {
+                    document.getElementById('withdrawAdProgress').innerText = `Watching Ad... ${t}s`;
+                } else {
+                    clearInterval(timer);
+                    showWithdrawalForm();
+                }
+            }, 1000);
+        }
+
+        function showWithdrawalForm() {
+            showModal(`
+                <h3>💳 Payout Details</h3>
+                <div style="text-align:left; margin:12px 0;">
+                    <label style="font-size:12px;">Method</label>
+                    <select id="payoutMethod" style="width:100%; padding:8px; border-radius:6px; margin-bottom:8px; background:#0f172a; color:white;">
+                        <option>eZ Cash</option>
+                        <option>Bank Transfer</option>
+                    </select>
+                    <label style="font-size:12px;">Account Number / Phone</label>
+                    <input type="text" id="payoutAcc" style="width:100%; padding:8px; border-radius:6px; margin-bottom:12px; background:#0f172a; color:white;">
+                </div>
+                <button class="btn" onclick="submitWithdrawal()">Request Withdrawal</button>
+            `);
+        }
+
+        function submitWithdrawal() {
+            const acc = document.getElementById('payoutAcc').value;
+            const method = document.getElementById('payoutMethod').value;
+            if (!acc) { alert("Enter valid account details!"); return; }
+            pendingWithdrawal = { method, acc, amount: balance };
+            document.getElementById('payoutStatusBox').innerText = "Status: Pending Approval ⏳";
+            alert("Withdrawal request submitted! Pending Admin approval.");
+            closeModal();
+            updateAdminPanel();
+        }
+
+        // Admin Panel
+        function toggleAdminPanel() {
+            const panel = document.getElementById('adminPanel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function updateAdminPanel() {
+            const list = document.getElementById('adminRequestsList');
+            if (pendingWithdrawal) {
+                list.innerHTML = `
+                    <p><b>User Request:</b> LKR ${pendingWithdrawal.amount} via ${pendingWithdrawal.method} (${pendingWithdrawal.acc})</p>
+                    <button class="btn" style="background:var(--success); margin-top:8px;" onclick="approveWithdrawal()">Approve & Mark Delivered</button>
+                `;
+            } else {
+                list.innerText = "No pending withdrawal requests.";
+            }
+        }
+
+        function approveWithdrawal() {
+            document.getElementById('payoutStatusBox').innerText = "Status: Delivered ✅";
+            pendingWithdrawal = null;
+            updateAdminPanel();
+            alert("Request marked as Delivered!");
+        }
+
+        generateCaptcha();
+    </script>
+</body>
+</html>
